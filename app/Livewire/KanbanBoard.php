@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Project;
+use App\Events\TaskMoved;
 
 class KanbanBoard extends Component
 {
@@ -36,17 +37,18 @@ class KanbanBoard extends Component
         foreach ($groups as $group) {
             $status = $group['value'] ?? null;
             $items = array_values($group['items'] ?? []);
-
             if (!$status)
                 continue;
 
             foreach ($items as $item) {
                 $taskId = (int) ($item['value'] ?? $item['id'] ?? 0);
-
                 if ($taskId > 0) {
-                    $this->project->tasks()->whereKey($taskId)->update([
-                        'status' => $status,
-                    ]);
+                    $task = $this->project->tasks()->whereKey($taskId)->first();
+                    if ($task && $task->status !== $status) {
+                        $task->update(['status' => $status]);
+                        // event(new TaskMoved($this->project, $task->fresh()));
+                        TaskMoved::dispatch($this->project, $task->fresh());
+                    }
                 }
             }
         }
@@ -64,4 +66,12 @@ class KanbanBoard extends Component
             'done' => $tasks->get('done', collect()),
         ]);
     }
+
+    public function getListeners()
+    {
+        return [
+            "echo-private:project.{$this->project->id},TaskMoved" => '$refresh',
+        ];
+    }
+
 }
