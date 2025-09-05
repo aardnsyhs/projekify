@@ -37,10 +37,12 @@
     </div>
     <div class="mt-6">
         @forelse ($projects as $project)
-            <div class="p-4 border-b">
-                <h3 class="text-lg font-semibold text-gray-900">{{ $project->name }}</h3>
-                <p class="mt-1 text-gray-600">{{ $project->description }}</p>
-            </div>
+            <a href="{{ route('projects.show', $project) }}" class="block hover:bg-gray-50">
+                <div class="p-4 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ $project->name }}</h3>
+                    <p class="mt-1 text-gray-600">{{ $project->description }}</p>
+                </div>
+            </a>
         @empty
             <p class="text-gray-600">You haven't created any projects yet.</p>
         @endforelse
